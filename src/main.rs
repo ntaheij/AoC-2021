@@ -224,6 +224,22 @@ mod tests {
         test_day!(results, 1_228, 1_257);
         Ok(())
     }
+
+    #[test]
+    fn test_02_sample() -> Result<()> {
+        let buffer = crate::load::data_to_buffer("data/day02_sample.txt".to_string())?;
+        let results = day01::run(buffer)?;
+        test_day!(results, 150, 900);
+        Ok(())
+    }
+
+    #[test]
+    fn test_02_actual() -> Result<()> {
+        let buffer = crate::load::data_to_buffer("data/day02_actual.txt".to_string())?;
+        let results = day01::run(buffer)?;
+        test_day!(results, 2120749, 2138382217);
+        Ok(())
+    }
 }
 
 // -----------------------------------------------------------------------------
