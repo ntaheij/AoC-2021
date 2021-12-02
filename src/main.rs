@@ -103,7 +103,7 @@ fn main() -> Result<()> {
     ];
     let data = [
         "data/day01_actual.txt",
-        "data/day01_actual.txt"
+        "data/day02_actual.txt"
     ];
     let reports = [
         day01::report,
