@@ -1,13 +1,13 @@
 use crate::prelude::*;
 
-fn part_1(input: &Vec<String>) -> crate::Result<i32> {
+fn part_1(input: &Vec<String>) -> crate::Result<i64> {
     let mut x = 0;
     let mut depth = 0;
 
     for line in input {
         let mut split = line.split(' ');
         let command = split.next().unwrap();
-        let arg = split.next().unwrap().parse::<i32>().unwrap();
+        let arg = split.next().unwrap().parse::<i64>().unwrap();
 
         match command {
             "forward" => x += arg,
@@ -20,7 +20,7 @@ fn part_1(input: &Vec<String>) -> crate::Result<i32> {
     Ok(x * depth)
 }
 
-fn part_2(input: &Vec<String>) -> crate::Result<i32> {
+fn part_2(input: &Vec<String>) -> crate::Result<i64> {
     let mut x = 0;
     let mut depth = 0;
     let mut aim = 0;
@@ -28,7 +28,7 @@ fn part_2(input: &Vec<String>) -> crate::Result<i32> {
     for line in input {
         let mut split = line.split(' ');
         let command = split.next().unwrap();
-        let arg = split.next().unwrap().parse::<i32>().unwrap();
+        let arg = split.next().unwrap().parse::<i64>().unwrap();
 
         match command {
             "forward" => {
