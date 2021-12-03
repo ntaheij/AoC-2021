@@ -1,88 +1,49 @@
 use crate::prelude::*;
 
-fn part_1(input: &Vec<String>) -> crate::Result<i64> {
-    let num_bits = input[0].len();
-    assert!(input.iter().all(|x| x.len() == num_bits));
+fn part_1(input: &[u32]) -> crate::Result<u32> {
+    let x = (0..12).map(|i| max_bit(input, i) << i).sum::<u32>();
 
-    let mut freq = vec![0; num_bits];
-    for diag in input.iter() {
-        for i in 0..num_bits {
-            if diag.bytes().nth(i) == Some(b'1') {
-                freq[i] += 1;
-            }
-        }
-    }
-
-    let mut gamma = 0;
-    for f in freq.iter() {
-        gamma *= 2;
-        if f + f >= input.len() {
-            gamma += 1;
-        }
-    }
-
-    // Epsilon is gama with flipped bits
-    let epsilon = ((1 << num_bits ) - 1) ^ gamma;
-
-    Ok(gamma * epsilon)
+    // NOTE: Epsilon is gama with flipped bits
+    Ok(x * (!x & 0xfff))
 }
 
-fn _part_2(input: &Vec<String>, idx: usize, win: u8) -> i64 {
-    if input.len() == 1 {
-        return i64::from_str_radix(&input[0], 2).unwrap();
+fn _part_2(input: &[u32], oxygen: u32) -> u32 {
+    let mut input = input.to_vec();
+    for i in (0..12).rev() {
+      let keep = max_bit(&input, i) ^ oxygen;
+      input.retain(|x| (x>>i) & 1 == keep);
+      if input.len() == 1 { break }
     }
-
-    let num_bits = input[0].len();
-    assert!(input.iter().all(|x| x.len() == num_bits));
-
-    let f: usize = input
-        .iter()
-        .map(|s| {
-            if s.bytes().nth(idx) == Some(b'1') {
-                1
-            } else {
-                0
-            }
-        })
-        .sum();
-    let goal = if f + f >= input.len() { win } else { win ^ 1 };
-
-    let sub_inputs = &input
-        .into_iter()
-        .filter(|s| s.bytes().nth(idx) == Some(goal))
-        .cloned()
-        .collect();
-
-    _part_2(&sub_inputs, idx + 1, win)
+    input[0]
 }
 
-fn part_2(input: &Vec<String>) -> crate::Result<i64> {
-    let oxygen =  _part_2(input, 0, b'1');
-    let co2 =  _part_2(input, 0, b'0');
-
-    Ok(oxygen * co2) 
+fn part_2(input: &[u32]) -> crate::Result<u32> {
+    Ok(_part_2(&input, 1) * _part_2(&input, 0)) 
 }
+
+fn max_bit(nums: &[u32], bit: usize) -> u32 {
+    let mut c = [0,0];
+    for &x in nums {
+      c[(x as usize >> bit) & 1] += 1
+    }
+    (c[1] >= c[0]) as u32
+  }
 
 pub(crate) fn run(buffer: String) -> crate::Result<RunData> {
-    // Read values from input
     let start_setup = Instant::now();
-    let input: Vec<String> = buffer
-        .lines()
-        .map(|line| line.parse().expect("failed to parse line"))
-        .collect();
+    let input = buffer.lines()
+        .map(|l| u32::from_str_radix(l, 2).unwrap())
+        .collect::<Vec<_>>();
     let time_setup = start_setup.elapsed();
 
-    // Look for increases
     let start_part_1 = Instant::now();
     let increases_1 = part_1(&input)?;
     let time_part_1 = start_part_1.elapsed();
 
-    // Look for increases in window of 3 values
     let start_part_2 = Instant::now();
     let increases_2 = part_2(&input)?;
     let time_part_2 = start_part_2.elapsed();
 
-    // Return
     Ok(RunData::new(
         increases_1 as i64,
         increases_2 as i64,
