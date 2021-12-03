@@ -45,7 +45,6 @@ fn part_2(input: &Vec<String>) -> crate::Result<i64> {
 }
 
 pub(crate) fn run(buffer: String) -> crate::Result<RunData> {
-    // Read values from input
     let start_setup = Instant::now();
     let input: Vec<String> = buffer
         .lines()
@@ -53,17 +52,14 @@ pub(crate) fn run(buffer: String) -> crate::Result<RunData> {
         .collect();
     let time_setup = start_setup.elapsed();
 
-    // Look for increases
     let start_part_1 = Instant::now();
     let increases_1 = part_1(&input)?;
     let time_part_1 = start_part_1.elapsed();
 
-    // Look for increases in window of 3 values
     let start_part_2 = Instant::now();
     let increases_2 = part_2(&input)?;
     let time_part_2 = start_part_2.elapsed();
 
-    // Return
     Ok(RunData::new(
         increases_1 as i64,
         increases_2 as i64,
@@ -78,8 +74,8 @@ pub(crate) fn run(buffer: String) -> crate::Result<RunData> {
 
 pub(crate) fn report(run_data: &RunData) -> crate::Result<()> {
     output::print_day(2, "Dive!")?;
-    output::print_part(1, "📉 DepthHeight", &format!("{}", run_data.part_1))?;
-    output::print_part(2, "📉 DepthHeight", &format!("{}", run_data.part_2))?;
+    output::print_part(1, "🤿 Product", &format!("{}", run_data.part_1))?;
+    output::print_part(2, "🤿 Product", &format!("{}", run_data.part_2))?;
     output::print_timing(&run_data.times)?;
     Ok(())
 }
