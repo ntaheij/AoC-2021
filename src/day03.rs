@@ -3,7 +3,7 @@ use crate::prelude::*;
 fn part_1(input: &[u32]) -> crate::Result<u32> {
     let x = (0..12).map(|i| max_bit(input, i) << i).sum::<u32>();
 
-    // NOTE: Epsilon is gama with flipped bits
+    // NOTE: Epsilon is gamma with flipped bits
     Ok(x * (!x & 0xfff))
 }
 
@@ -57,7 +57,7 @@ pub(crate) fn run(buffer: String) -> crate::Result<RunData> {
 }
 
 pub(crate) fn report(run_data: &RunData) -> crate::Result<()> {
-    output::print_day(2, "Binary Diagnostic")?;
+    output::print_day(3, "Binary Diagnostic")?;
     output::print_part(1, "🖥️ Power Consumption", &format!("{}", run_data.part_1))?;
     output::print_part(2, "🖥️ Life Support Rating", &format!("{}", run_data.part_2))?;
     output::print_timing(&run_data.times)?;
