@@ -1,13 +1,17 @@
 use crate::prelude::*;
 
-fn part_1(input: &[u32]) -> crate::Result<u32> {
-    let x = (0..12).map(|i| max_bit(input, i) << i).sum::<u32>();
+fn part_1(input: &[usize]) -> crate::Result<usize> {
+    let x = (0..12).map(|i| max_bit(input, i) << i).sum::<usize>();
 
     // NOTE: Epsilon is gamma with flipped bits
     Ok(x * (!x & 0xfff))
 }
 
-fn _part_2(input: &[u32], oxygen: u32) -> u32 {
+fn part_2(input: &[usize]) -> crate::Result<usize> {
+    Ok(_part_2(&input, 1) * _part_2(&input, 0)) 
+}
+
+fn _part_2(input: &[usize], oxygen: usize) -> usize {
     let mut input = input.to_vec();
     for i in (0..12).rev() {
       let keep = max_bit(&input, i) ^ oxygen;
@@ -17,22 +21,18 @@ fn _part_2(input: &[u32], oxygen: u32) -> u32 {
     input[0]
 }
 
-fn part_2(input: &[u32]) -> crate::Result<u32> {
-    Ok(_part_2(&input, 1) * _part_2(&input, 0)) 
-}
-
-fn max_bit(nums: &[u32], bit: usize) -> u32 {
+fn max_bit(nums: &[usize], bit: usize) -> usize {
     let mut c = [0,0];
     for &x in nums {
       c[(x as usize >> bit) & 1] += 1
     }
-    (c[1] >= c[0]) as u32
-  }
+    (c[1] >= c[0]) as usize
+}
 
 pub(crate) fn run(buffer: String) -> crate::Result<RunData> {
     let start_setup = Instant::now();
     let input = buffer.lines()
-        .map(|l| u32::from_str_radix(l, 2).unwrap())
+        .map(|l| usize::from_str_radix(l, 2).unwrap())
         .collect::<Vec<_>>();
     let time_setup = start_setup.elapsed();
 

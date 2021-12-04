@@ -1,19 +1,19 @@
 use crate::prelude::*;
 
-fn part_1(depths: &Vec<i64>) -> crate::Result<i64> {
-    Ok(depths.windows(2).filter(|pair| pair[1] > pair[0]).count() as i64)
+fn part_1(depths: &Vec<usize>) -> crate::Result<usize> {
+    Ok(depths.windows(2).filter(|pair| pair[1] > pair[0]).count() as usize)
 }
 
-fn part_2(depths: &Vec<i64>) -> crate::Result<i64> {
+fn part_2(depths: &Vec<usize>) -> crate::Result<usize> {
     Ok(depths
         .windows(4)
         .filter(|quartet| quartet[3] > quartet[0])
-        .count() as i64)
+        .count() as usize)
 }
 
 pub(crate) fn run(buffer: String) -> crate::Result<RunData> {
     let start_setup = Instant::now();
-    let depths: Vec<i64> = buffer
+    let depths: Vec<usize> = buffer
         .lines()
         .map(|line| line.parse().expect("failed to parse line"))
         .collect();
