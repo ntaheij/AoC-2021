@@ -238,7 +238,7 @@ mod tests {
     #[test]
     fn test_02_sample() -> Result<()> {
         let buffer = crate::load::data_to_buffer("data/day02_sample.txt".to_string())?;
-        let results = day01::run(buffer)?;
+        let results = day02::run(buffer)?;
         test_day!(results, 150, 900);
         Ok(())
     }
@@ -246,7 +246,7 @@ mod tests {
     #[test]
     fn test_02_actual() -> Result<()> {
         let buffer = crate::load::data_to_buffer("data/day02_actual.txt".to_string())?;
-        let results = day01::run(buffer)?;
+        let results = day02::run(buffer)?;
         test_day!(results, 2120749, 2138382217);
         Ok(())
     }
@@ -254,7 +254,7 @@ mod tests {
     #[test]
     fn test_03_sample() -> Result<()> {
         let buffer = crate::load::data_to_buffer("data/day03_sample.txt".to_string())?;
-        let results = day01::run(buffer)?;
+        let results = day03::run(buffer)?;
         test_day!(results, 198, 2261546);
         Ok(())
     }
@@ -262,8 +262,24 @@ mod tests {
     #[test]
     fn test_03_actual() -> Result<()> {
         let buffer = crate::load::data_to_buffer("data/day03_actual.txt".to_string())?;
-        let results = day01::run(buffer)?;
+        let results = day03::run(buffer)?;
         test_day!(results, 230, 6775520);
+        Ok(())
+    }
+
+    #[test]
+    fn test_04_sample() -> Result<()> {
+        let buffer = crate::load::data_to_buffer("data/day03_sample.txt".to_string())?;
+        let results = day04::run(buffer)?;
+        test_day!(results, 4512, 1924);
+        Ok(())
+    }
+
+    #[test]
+    fn test_04_actual() -> Result<()> {
+        let buffer = crate::load::data_to_buffer("data/day04_actual.txt".to_string())?;
+        let results = day04::run(buffer)?;
+        test_day!(results, 65325, 4624);
         Ok(())
     }
 }
