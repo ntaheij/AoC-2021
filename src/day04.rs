@@ -1,72 +1,171 @@
 use crate::prelude::*;
-use std::collections::HashSet;
+use itertools::Itertools;
 
-type Board = Vec<Vec<usize>>;
-
-static DRAWS: &[usize] = &[49,48,98,84,71,59,37,36,6,21,46,30,5,33,3,62,63,45,43,35,65,77,57,75,19,44,4,76,88,92,12,27,7,51,14,72,96,9,0,17,83,64,38,95,54,20,1,74,69,80,81,56,10,68,42,15,99,53,93,94,47,13,29,34,60,41,82,90,25,85,78,91,32,70,58,28,61,24,55,87,39,11,79,50,22,8,89,26,16,2,73,23,18,66,52,31,86,97,67,40];
-
-// TODO: Needs some optimization
-fn part_1(input: &[Board]) -> usize {
-    for i in 5..DRAWS.len() {
-      let winner = input.iter()
-        .find_map(|b| check_board(&DRAWS[0..i], &b));
-      if let Some(score) = winner {
-        return score;
-      }
-    }
-    unreachable!()
+const NUMBER_ENTRIES: usize = 100;
+const NUMBER_SQ_ROOT: usize = 5;
+struct Board {
+  entry_rows: [usize; NUMBER_ENTRIES],
+  entry_columns: [usize; NUMBER_ENTRIES],
+  entry_diagonals: [usize; NUMBER_ENTRIES],
+  visited: [bool; NUMBER_ENTRIES],
+  visited_rows: [usize; NUMBER_SQ_ROOT + 1],
+  visited_columns: [usize; NUMBER_SQ_ROOT + 1],
+  visited_diagonals: [usize; 3],
+  won: bool,
 }
-  
-// TODO: Needs a lot of optimization
-fn part_2(input: &[Board]) -> usize {
-    let mut input = input.iter().collect::<HashSet<_>>();
-    for i in 5..DRAWS.len() {
-        let winners = input.iter()
-        .filter_map(|b| check_board(&DRAWS[0..i], &b).map(|score| (b.clone(),score)))
-        .collect::<Vec<_>>();
-        for (b,_) in &winners {
-        input.remove(b);
-        }
-        if input.is_empty() {
-        return winners[0].1
-        }
-    }
-    unreachable!()
-}
-  
 
-fn board_score(draws: &[usize], b: &Board) -> usize {
-    b.iter().flatten().filter(|x| !draws.contains(x)).sum()
+impl Board {
+  fn new(board: itertools::Chunk<std::iter::Skip<std::str::Split<&str>>>) -> crate::Result<Self> {
+      let mut entry_rows = [0; NUMBER_ENTRIES];
+      let mut entry_columns = [0; NUMBER_ENTRIES];
+      let mut entry_diagonals = [0; NUMBER_ENTRIES];
+      board.into_iter().enumerate().for_each(|(i, line)| {
+          line.split_whitespace()
+              .into_iter()
+              .enumerate()
+              .for_each(|(j, number)| {
+                  let index: usize = number.trim().parse().expect("failed to parse number");
+                  let diagonal = if i == j {
+                      1
+                  } else if i == NUMBER_SQ_ROOT - j + 1 {
+                      2
+                  } else {
+                      0
+                  };
+                  entry_rows[index] = i + 1;
+                  entry_columns[index] = j + 1;
+                  entry_diagonals[index] = diagonal;
+              });
+      });
+      Ok(Self {
+          entry_rows: entry_rows,
+          entry_columns: entry_columns,
+          entry_diagonals: entry_diagonals,
+          visited: [false; NUMBER_ENTRIES],
+          visited_rows: [0; NUMBER_SQ_ROOT + 1],
+          visited_columns: [0; NUMBER_SQ_ROOT + 1],
+          visited_diagonals: [0; 3],
+          won: false,
+      })
+  }
+
+  fn is_winner(&mut self) -> crate::Result<bool> {
+      self.won = self.won
+          || self
+              .visited_rows
+              .iter()
+              .skip(1)
+              .any(|visits| *visits == NUMBER_SQ_ROOT)
+          || self
+              .visited_columns
+              .iter()
+              .skip(1)
+              .any(|visits| *visits == NUMBER_SQ_ROOT)
+          || self
+              .visited_diagonals
+              .iter()
+              .skip(1)
+              .any(|visits| *visits == NUMBER_SQ_ROOT);
+      Ok(self.won)
+  }
+
+  fn score(&self) -> crate::Result<u32> {
+      Ok(self
+          .visited
+          .iter()
+          .enumerate()
+          .fold(0, |score, (i, visited)| {
+              return score
+                  + if !*visited && self.entry_rows[i] != 0 {
+                      i as u32
+                  } else {
+                      0
+                  };
+          }))
+  }
 }
-  
-fn check_board(draws: &[usize], b: &Board) -> Option<usize> {
-    for i in 0..5 {
-      if (0..5).all(|j| draws.contains(&b[i][j])) {
-        return Some(board_score(draws, b) * draws.last().unwrap());
-      }
-      if (0..5).all(|j| draws.contains(&b[j][i])) {
-        return Some(board_score(draws, b) * draws.last().unwrap());
-      }
-    }
-    None
+
+fn part_1(balls: &Vec<usize>, boards: &mut Vec<Board>) -> crate::Result<(u32, usize)> {
+  let mut is_winner = false;
+  let mut winner = 0;
+  let mut ball = 0;
+  let mut balls_iter = balls.iter();
+  while !is_winner {
+      ball = *balls_iter.next().expect("insufficent balls");
+      boards.iter_mut().enumerate().for_each(|(i, board)| {
+          board.visited[ball] = true;
+          board.visited_rows[board.entry_rows[ball]] += 1;
+          board.visited_columns[board.entry_columns[ball]] += 1;
+          board.visited_diagonals[board.entry_diagonals[ball]] += 1;
+          if !is_winner {
+              is_winner = board.is_winner().expect("failed to check status");
+              winner = i;
+          }
+      });
+  }
+  let score = boards[winner].score()?;
+  Ok((score, ball))
+}
+
+fn part_2(
+  last_ball: usize,
+  balls: &Vec<usize>,
+  boards: &mut Vec<Board>,
+) -> crate::Result<(u32, usize)> {
+  let number_boards = boards.len();
+  let mut winner_count = 1;
+  let mut winner = 0;
+  let mut ball = 0;
+  let ball_index = balls
+      .iter()
+      .position(|ball| *ball == last_ball)
+      .expect("failed to find ball");
+  let mut balls_iter = balls.iter().skip(ball_index + 1);
+  while winner_count != number_boards {
+      ball = *balls_iter.next().expect("insufficent balls");
+      boards.iter_mut().enumerate().for_each(|(i, board)| {
+          if !board.is_winner().expect("failed to check status") {
+              board.visited[ball] = true;
+              board.visited_rows[board.entry_rows[ball]] += 1;
+              board.visited_columns[board.entry_columns[ball]] += 1;
+              board.visited_diagonals[board.entry_diagonals[ball]] += 1;
+              if board.is_winner().expect("failed to check status") {
+                  winner_count += 1;
+                  winner = i;
+              }
+          }
+      });
+  }
+  let score = boards[winner].score()?;
+  Ok((score, ball))
 }
 
 pub(crate) fn run(buffer: String) -> crate::Result<RunData> {
     let start_setup = Instant::now();
-    let input = buffer.split("\n\n")
-    .map(|b| {
-      b.lines()
-        .map(|l| l.split_whitespace().map(|i| i.parse().unwrap()).collect())
-        .collect()
-    }).collect::<Vec<Board>>();
+    let balls: Vec<usize> = buffer
+        .lines()
+        .nth(0)
+        .expect("failed to parse line")
+        .split(",")
+        .map(|n| n.parse().expect("failed to parse ball"))
+        .collect();
+    let mut boards: Vec<Board> = buffer
+        .split("\n")
+        .skip(2)
+        .chunks(6)
+        .into_iter()
+        .map(|chunk| Board::new(chunk).expect("failed to parse board"))
+        .collect();
     let time_setup = start_setup.elapsed();
 
     let start_part_1 = Instant::now();
-    let increases_1 = part_1(&input);
+    let (score_1, ball_1) = part_1(&balls, &mut boards)?;
+    let increases_1 = score_1 * ball_1 as u32;
     let time_part_1 = start_part_1.elapsed();
 
     let start_part_2 = Instant::now();
-    let increases_2 = part_2(&input);
+    let (score_2, ball_2) = part_2(ball_1, &balls, &mut boards)?;
+    let increases_2 = score_2 * ball_2 as u32;
     let time_part_2 = start_part_2.elapsed();
 
     Ok(RunData::new(
