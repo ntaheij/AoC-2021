@@ -3,6 +3,7 @@ use itertools::Itertools;
 
 const NUMBER_ENTRIES: usize = 100;
 const NUMBER_SQ_ROOT: usize = 5;
+
 struct Board {
   entry_rows: [usize; NUMBER_ENTRIES],
   entry_columns: [usize; NUMBER_ENTRIES],
