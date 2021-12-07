@@ -56,8 +56,8 @@ pub(crate) fn run(buffer: String) -> crate::Result<RunData> {
 
 pub(crate) fn report(run_data: &RunData) -> crate::Result<()> {
     output::print_day(6, "Lanternfish")?;
-    output::print_part(1, "🔥 Overlapping", &format!("{}", run_data.part_1))?;
-    output::print_part(2, "🔥 Overlapping", &format!("{}", run_data.part_2))?;
+    output::print_part(1, "🎣 Amount", &format!("{}", run_data.part_1))?;
+    output::print_part(2, "🎣 Amount", &format!("{}", run_data.part_2))?;
     output::print_timing(&run_data.times)?;
     Ok(())
 }
