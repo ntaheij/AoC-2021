@@ -1,48 +1,48 @@
 use crate::prelude::*;
-use itertools::Itertools;
-
-pub fn part_2(input: Vec<i32>) -> i32 {
-    let (min, max) = input.iter()
-        .minmax()
-        .into_option().unwrap();
-
-    (*min..=*max).into_iter()
-        .map(|i| {
-            input.iter()
-                .map(|crab| (*crab - i).abs())
-                .sum()
-        })
-        .min().unwrap()
+fn gauss_sum(n: u32) -> u32 {
+    n * (n + 1) / 2
 }
 
-pub fn part_1(input: Vec<i32>) -> i32 {
-    let (min, max) = input.iter()
-        .minmax()
-        .into_option().unwrap();
+fn part_1(positions: &Vec<u16>) -> crate::Result<u32> {
+    let median = positions[positions.len() / 2];
+    let fuel = positions
+        .iter()
+        .map(|position| (*position as i32 - median as i32).abs() as u32)
+        .sum();
+    Ok(fuel)
+}
 
-    (*min..=*max).into_iter()
-        .map(|i| {
-            input.iter()
-                .map(|crab| (*crab - i).abs())
-                .map(|n| n * (n + 1) / 2)
-                .sum()
-        })
-        .min().unwrap()
+fn part_2(positions: &Vec<u16>) -> crate::Result<u32> {
+    let average_float =
+        positions.iter().map(|n| *n as u32).sum::<u32>() as f32 / positions.len() as f32;
+    let average_floor = average_float.floor() as u32;
+    let average_ceil = average_float.ceil() as u32;
+    let (fuel_floor, fuel_ceil) = positions.iter().fold((0_u32, 0_u32), |acc, position| {
+        let distance_floor = (*position as i32 - average_floor as i32).abs() as u32;
+        let distance_ceil = (*position as i32 - average_ceil as i32).abs() as u32;
+        (
+            acc.0 + gauss_sum(distance_floor),
+            acc.1 + gauss_sum(distance_ceil),
+        )
+    });
+    Ok(std::cmp::min(fuel_floor, fuel_ceil))
 }
 
 pub(crate) fn run(buffer: String) -> crate::Result<RunData> {
     let start_setup = Instant::now();
-    let input = buffer.split(',').into_iter()
-        .map(|i| i.parse::<i32>().unwrap())
-        .collect_vec();
+    let input: Vec<u16> = buffer
+        .trim()
+        .split(',')
+        .map(|position| position.parse().expect("failed to parse position"))
+        .collect();
     let time_setup = start_setup.elapsed();
 
     let start_part_1 = Instant::now();
-    let increases_1 = part_1(input.clone());
+    let increases_1 = part_1(&input)?;
     let time_part_1 = start_part_1.elapsed();
 
     let start_part_2 = Instant::now();
-    let increases_2 = part_2(input.clone());
+    let increases_2 = part_2(&input)?;
     let time_part_2 = start_part_2.elapsed();
 
     Ok(RunData::new(
