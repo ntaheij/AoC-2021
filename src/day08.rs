@@ -91,6 +91,7 @@ fn part_2(positions: &Vec<Display>) -> crate::Result<u32> {
         })
         .sum())
 }
+
 pub(crate) fn run(buffer: String) -> crate::Result<RunData> {
     let start_setup = Instant::now();
     let input: Vec<Display> = buffer
