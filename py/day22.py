@@ -4,108 +4,92 @@ import heapq
 import itertools
 import re
 import ast
+import numpy as np
 from collections import defaultdict, Counter, deque
 
 infile = sys.argv[1] if len(sys.argv)>1 else '22.in'
-data = open(infile).read().strip()
+handle = open(infile, 'r')
 
-# [1 10] [11 20] [21 100]
-X = set()
-Y = set()
-Z = set()
-C = []
-min_x = 0
-min_y = 0
-min_z = 0
-max_x = 0
-max_y = 0
-max_z = 0
-G = set()
-for r,line in enumerate(data.strip().split('\n')):
-  assert line == line.strip()
-  words = line.split()
-  cmd = words[0]
-  x1,x2,y1,y2,z1,z2 = [int(x) for x in re.findall('-?\d+', words[1])]
-  x1,x2 = min(x1, x2), max(x1,x2)
-  y1,y2 = min(y1, y2), max(y1,y2)
-  z1,z2 = min(z1, z2), max(z1,z2)
+def part_1():
+  handle = open('input.txt','r')
+  data = np.zeros((101,101,101))
+  for line in handle:
+    items = line.split(' ')
+    if items[0] == 'on':
+      value = 1
+    else:
+      value = 0
+    ranges = [x[2:] for x in items[1].split(',')]
+    x_start,x_end = [int(x)+50 for x in ranges[0].split("..")]
+    y_start,y_end = [int(x)+50 for x in ranges[1].split("..")]
+    z_start,z_end = [int(x)+50 for x in ranges[2].split("..")]
+    data[x_start:x_end+1,y_start:y_end+1,z_start:z_end+1] = value
+  
+  print(np.sum(data))
 
-  X.add(x1)
-  X.add(x2+1)
-  Y.add(y1)
-  Y.add(y2+1)
-  Z.add(z1)
-  Z.add(z2+1)
+def part_2():
+  handle = open('input.txt','r')
+  data = []
+  for line in handle:
+    items = line.split(' ')
+    if items[0] == 'on':
+      value = 1
+    else:
+      value = 0
+    ranges = [x[2:] for x in items[1].split(',')]
+    x_start,x_end = [int(x) for x in ranges[0].split("..")]
+    y_start,y_end = [int(x) for x in ranges[1].split("..")]
+    z_start,z_end = [int(x) for x in ranges[2].split("..")]
+    x_end+=1
+    y_end+=1
+    z_end+=1
+    cube = [x_start,x_end,y_start,y_end,z_start,z_end,value]
+    new_items = []
+    for i in range(len(data)):
+      item = data[i]
 
-  min_x = min(x1, min_x)
-  min_y = min(y1, min_y)
-  min_z = min(z1, min_z)
-  max_x = max(x2, max_x)
-  max_y = max(y2, max_y)
-  max_z = max(z2, max_z)
-  C.append((x1,x2,y1,y2,z1,z2,cmd=='on'))
+      x_overlap = x_end > item[0] and x_start < item[1]
+      y_overlap = y_end > item[2] and y_start < item[3]
+      z_overlap = z_end > item[4] and z_start < item[5]
+      if x_overlap and y_overlap and z_overlap:
 
-def expand(A):
-  B = set()
-  for x in A:
-    B.add(x)
-  B = sorted(B)
+        if item[0] < x_start:
+          new_item = [item[0],x_start,item[2],item[3],item[4],item[5],item[6]]
+          item[0] = x_start
+          new_items.append(new_item)
+        if item[1] > x_end:
+          new_item = [x_end,item[1],item[2],item[3],item[4],item[5],item[6]]
+          item[1] = x_end
+          new_items.append(new_item)
+        if item[2] < y_start:
+          new_item = [item[0],item[1],item[2],y_start,item[4],item[5],item[6]]
+          item[2] = y_start
+          new_items.append(new_item)        
+        if item[3] > y_end:
+          new_item = [item[0],item[1],y_end,item[3],item[4],item[5],item[6]]
+          item[3] = y_end
+          new_items.append(new_item) 
+        if item[4] < z_start:
+          new_item = [item[0],item[1],item[2],item[3],item[4],z_start,item[6]]
+          item[4] = z_start
+          new_items.append(new_item)        
+        if item[5] > z_end:
+          new_item = [item[0],item[1],item[2],item[3],z_end,item[5],item[6]]
+          item[5] = z_end
+          new_items.append(new_item)
+      else:
+        new_items.append(item)
+    
+    new_items.append(cube)
+    data = new_items
 
-  ret = {}
-  U = {}
-  len_sum = 0
-  for i,x in enumerate(B):
-    ret[x] = i
-    if i+1 < len(B):
-      len_ = B[i+1]-x if i+1<len(B) else None
-      len_sum += len_
-      U[i] = len_
-  for a in A:
-    assert a in ret
-  assert len_sum == max(B)-min(B), f'{len_sum} {max(B)-min(B)}'
-  return (ret, U)
+  total = 0
+  for i in range(len(data)):
+    item = data[i]
+    if item[6]==1:
+      total+=(item[1]-item[0])*(item[3]-item[2])*(item[5]-item[4])
 
-X.add(-50)
-X.add(51)
-Y.add(-50)
-Y.add(51)
-Z.add(-50)
-Z.add(51)
+  print(total)
 
-X,UX = expand(X)
-Y,UY = expand(Y)
-Z,UZ = expand(Z)
-
-#print(len(X), len(Y), len(Z))
-
-def solve(p1):
-  G = set()
-  for t,(x1,x2,y1,y2,z1,z2,on) in enumerate(C):
-    #print(t,len(C))
-    if p1:
-      x1 = max(x1, -50)
-      y1 = max(y1, -50)
-      z1 = max(z1, -50)
-      
-      x2 = min(x2, 50)
-      y2 = min(y2, 50)
-      z2 = min(z2, 50)
-    for x in range(X[x1], X[x2+1]):
-      for y in range(Y[y1], Y[y2+1]):
-        for z in range(Z[z1], Z[z2+1]):
-          #print(x,y,z,UX[x],UY[y],UZ[z])
-          if on:
-            G.add((x,y,z))
-          else:
-            G.discard((x,y,z))
-
-  ans = 0
-  for x,y,z in G:
-    lx = UX[x]
-    ly = UY[y]
-    lz = UZ[z]
-    ans += lx*ly*lz
-  return ans
-
-print(solve(True))
-print(solve(False))
+part_1()
+part_2()
